@@ -89,14 +89,14 @@ int main() {
 	playerPos.x = 320 / 2;
 	playerPos.y = 200 / 2;
 	
-
-	old_handler = _dos_getvect(0x09);
-    _dos_setvect(0x09, new_handler);
 	
 	if(_setvideomode(_MRES16COLOR) == 0) {
 		printf("no available Video modes!!");
 		return 0;
 	}
+	
+	old_handler = _dos_getvect(0x09);
+    _dos_setvect(0x09, new_handler);
 	
 	drawImage("dant3.spr", 0, 0, 16);
 	_getimage(0,0,15,15, playerSprs[0]);
