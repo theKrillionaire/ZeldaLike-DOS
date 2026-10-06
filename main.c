@@ -7,6 +7,8 @@
 #define CONPORT 0x61
 #define PICPORT 0x20
 
+#define DOWNSPRITE "dant3.spr"
+
 enum KEYCODES {
 	KESC   = 1,
 	KLEFT  = 75,
@@ -15,9 +17,20 @@ enum KEYCODES {
 	KRIGHT = 77
 };
 
+enum BOOL {
+	false,
+	true
+};
+
 struct Vector2 {
 	int x;
 	int y;
+};
+
+struct Rectangle {
+	struct Vector2 pos;
+	int width;
+	int height;
 };
 
 volatile char keys[128] = {0};
@@ -76,18 +89,35 @@ struct Vector2 getPlayerVel() {
 	return vel;
 }
 
+int checkCollision(struct Rectangle* Rect1, struct Rectangle* Rect2) {
+	if(
+		Rect1->pos.x < Rect2->pos.x + Rect2->width &&
+		Rect1->pos.x + Rect1->width > Rect2->pos.x &&
+		Rect1->pos.y < Rect2->pos.y + Rect2->height &&
+		Rect1->pos.y + Rect1->height > Rect2->pos.y
+	) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
+
 int main() {
 	unsigned long tick = 0;
     unsigned long lastTick = 0;
 	
-	struct Vector2 playerPos;
-	
+	struct Vector2 playerPos = {320 / 2, 200 / 2};
 	int playerDir = 0;
-	
 	static char playerSprs[4][512];
+	int wall = 0;
 	
-	playerPos.x = 320 / 2;
-	playerPos.y = 200 / 2;
+	struct Rectangle walls[4] = {
+   		{{0,   0}, 16, 200},
+   		{{0,   0}, 320, 16},
+    	{{304, 0}, 16, 320},
+    	{{0, 184}, 320, 16}
+	};
 	
 	
 	if(_setvideomode(_MRES16COLOR) == 0) {
@@ -110,24 +140,44 @@ int main() {
 	_clearscreen(_GCLEARSCREEN);
 	
 	_putimage(playerPos.x, playerPos.y, playerSprs[0], _GPSET);
+	for(wall; wall < 4; wall++) {
+		_setcolor(1);
+		_rectangle(_GFILLINTERIOR,walls[wall].pos.x, walls[wall].pos.y, walls[wall].pos.x + walls[wall].width - 1, walls[wall].pos.y + walls[wall].height - 1);
+	}
 	
 	while(!keys[KESC]) {
 		
 		lastTick = tick;
 		tick = *(unsigned long far *)MK_FP(0x40,0x6c);
 		
-		
 		if(tick - lastTick >= 1) { 
 			struct Vector2 pVelocity;
+			struct Vector2 touching = {false, false};
+			int i = 0;
+			struct Rectangle playerColX = {{0,0}, 16, 16};
+			struct Rectangle playerColY = {{0,0}, 16, 16};
 			
 			pVelocity = getPlayerVel();
 			
+			playerColX.pos.x = playerPos.x + pVelocity.x;
+			playerColX.pos.y = playerPos.y;
+			playerColY.pos.x = playerPos.x;
+			playerColY.pos.y = playerPos.y + pVelocity.y;
+			
 			if(pVelocity.x != 0 || pVelocity.y != 0) {
 				_setcolor(0);
-				_rectangle(_GFILLINTERIOR,playerPos.x,playerPos.y,playerPos.x + 16,playerPos.y + 16);
+				_rectangle(_GFILLINTERIOR,playerPos.x,playerPos.y,playerPos.x + 15,playerPos.y + 15);
+				for(i; i < 4; i++) {
+					if(checkCollision(&playerColX, &walls[i])) {
+						touching.x = true;
+					}
+					if(checkCollision(&playerColY, &walls[i])) {
+						touching.y = true;
+					}
+				} 
 				
-				playerPos.x += pVelocity.x;
-				playerPos.y += pVelocity.y;
+				playerPos.x += !touching.x * pVelocity.x ;
+				playerPos.y += !touching.y * pVelocity.y;
 				
 				if(pVelocity.y < 0) playerDir = 3;
 				else if(pVelocity.x < 0) playerDir = 2;
