@@ -15,10 +15,10 @@ enum KEYCODES {
 	KDOWN  = 0x50,
 	KUP    = 0x48,
     KRIGHT = 0x4D,
-    KA = 0x1E,
-    KD = 0x20,
-    KW = 0x11,
-    KS = 0x1F
+    KA     = 0x1E,
+    KD     = 0x20,
+    KW     = 0x11,
+    KS     = 0x1F
 };
 
 enum BOOL {
@@ -70,9 +70,9 @@ void drawImage(char* image, int posX, int posY, int size) {
     	int i = 0;
 		int color = 0;
         while((color = fgetc(outbin)) != EOF) {
-        _setcolor(color);
-        _setpixel(i % size + posX, i / size + posY);
-		i++;
+        	_setcolor(color);
+        	_setpixel(i % size + posX, i / size + posY);
+			i++;
         }
 		fclose(outbin);
     }
