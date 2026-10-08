@@ -10,11 +10,11 @@
 #define DOWNSPRITE "dant3.spr"
 
 enum KEYCODES {
-	KESC   = 1,
-	KLEFT  = 75,
-	KDOWN  = 80,
-	KUP    = 72,
-	KRIGHT = 77
+	KESC   = 0x12,
+	KLEFT  = 0x4B,
+	KDOWN  = 0x50,
+	KUP    = 0x48,
+	KRIGHT = 0x4D
 };
 
 enum BOOL {
@@ -102,6 +102,33 @@ int checkCollision(struct Rectangle* Rect1, struct Rectangle* Rect2) {
 	}
 }
 
+int loadMap(char mapData[240], char* fileName) {
+	FILE* mapFile = fopen(fileName, "r");
+	int i = 0;
+	
+	if(mapFile != NULL) {
+		int data = fgetc(mapFile);
+		for(i; i < 240; i++) {
+			if(data == EOF) {
+				mapData[i] = EOF;
+				return 1;
+				break;
+			} else {
+				mapData[i] = data;
+			}
+		}
+	}
+	return 0;
+}
+
+void drawMap(char mapData[240]) {
+	int i = 0;
+	for(i; i < 240; i++) {
+		int x = i % 16;
+		int y = i / 16;
+		if(mapData[i] == 1) _rectangle(_GFILLINTERIOR, x * 16, y * 16, x * 16 + 15, y * 16 + 15);
+	}
+}
 
 int main() {
 	unsigned long tick = 0;
@@ -111,6 +138,9 @@ int main() {
 	int playerDir = 0;
 	static char playerSprs[4][512];
 	int wall = 0;
+	int i = 0;
+	char ball[512];
+	
 	
 	struct Rectangle walls[4] = {
    		{{0,   0}, 16, 200},
@@ -128,22 +158,33 @@ int main() {
 	old_handler = _dos_getvect(0x09);
     _dos_setvect(0x09, new_handler);
 	
-	drawImage("dant3.spr", 0, 0, 16);
+	drawImage("sprites/dant3.spr", 0, 0, 16);
 	_getimage(0,0,15,15, playerSprs[0]);
-	drawImage("dant4.spr", 0, 0, 16);
+	drawImage("sprites/dant4.spr", 0, 0, 16);
 	_getimage(0,0,15,15, playerSprs[1]);
-	drawImage("dant5.spr", 0, 0, 16);
+	drawImage("sprites/dant5.spr", 0, 0, 16);
 	_getimage(0,0,15,15, playerSprs[2]);
-	drawImage("dant6.spr", 0, 0, 16);
+	drawImage("sprites/dant6.spr", 0, 0, 16);
 	_getimage(0,0,15,15, playerSprs[3]);
+	
+	
 	
 	_clearscreen(_GCLEARSCREEN);
 	
-	_putimage(playerPos.x, playerPos.y, playerSprs[0], _GPSET);
-	for(wall; wall < 4; wall++) {
-		_setcolor(1);
-		_rectangle(_GFILLINTERIOR,walls[wall].pos.x, walls[wall].pos.y, walls[wall].pos.x + walls[wall].width - 1, walls[wall].pos.y + walls[wall].height - 1);
+	drawImage("sprites/ball.spr", 0, 0, 16);
+	_getimage(0,0,15,15, ball);
+	
+	for(i; i < 20; i++) {
+		if( i < 12 ) {
+			_putimage(0, i * 16, ball, _GPSET);
+			_putimage(304, i * 16, ball, _GPSET);
+			
+		}
+		_putimage(i * 16, 0, ball, _GPSET);
+		_putimage(i * 16, 184, ball, _GPSET);
 	}
+	
+	_putimage(playerPos.x, playerPos.y, playerSprs[0], _GPSET);
 	
 	while(!keys[KESC]) {
 		
