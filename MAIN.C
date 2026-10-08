@@ -7,8 +7,6 @@
 #define CONPORT 0x61
 #define PICPORT 0x20
 
-#define DOWNSPRITE "dant3.spr"
-
 enum KEYCODES {
 	KESC   = 0x12,
 	KLEFT  = 0x4B,
